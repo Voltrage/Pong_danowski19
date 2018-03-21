@@ -57,7 +57,7 @@ public class PongAnimator implements Animator{
 	}
 
 	public void setPaddleWidth(int w){
-		paddleWidth = w;
+		paddleWidth = w+50;
 	}
 
 	public void setPaddleLoc(int touchX){

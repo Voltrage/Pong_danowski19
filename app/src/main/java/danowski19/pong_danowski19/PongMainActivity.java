@@ -84,7 +84,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 			Pong.setSpeed(progress);
 		}
 		else if(seekBar.getId()==R.id.paddleWidth){
-			Pong.setPaddleWidth(progress+50);
+			Pong.setPaddleWidth(progress);
 		}
 	}
 
