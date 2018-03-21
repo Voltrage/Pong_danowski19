@@ -1,9 +1,7 @@
 package danowski19.pong_danowski19;
 
-import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.RectF;
 
 import java.util.Random;
 
@@ -13,27 +11,34 @@ import java.util.Random;
 
 public class Ball {
 
-    private Point center;
+    //public here for easy access and can adjust to fix a bug
+    public Point center;
     private final int radius = 50;
     private float slopeX;
     private float slopeY;
-    private float velocity;
+    private int velocity;
 
     public Ball(int wall) {
         Random gen = new Random();
-        slopeY = gen.nextFloat();
+
+        //random direction
+        slopeY = gen.nextFloat()/2+0.25f;
         slopeX = (float) Math.sqrt(1.0 - slopeY * slopeY);
-//        velocity = gen.nextInt(91)+10;
-        velocity = 10;
-//        rect = new Rect(g.getHeight()/2-radius, g.getWidth()/2-radius, g.getHeight()/2+radius, g.getWidth()/2+radius);
-        int cx = wall + radius;
-        int cy = wall + radius;
+
+        //random velocity
+        velocity = gen.nextInt(20)+10;
+
+        //random starting position
+        int cx = gen.nextInt(100) + wall + radius;
+        int cy = gen.nextInt(100) + wall + radius;
         center = new Point(cx, cy);
 //        rect = new Rect(wall+1,wall+1,wall+2*radius,wall+2*radius);
     }
 
-    public Rect getRect(Point n) {
-        return new Rect(n.y - radius, n.x - radius, n.y + radius, n.x + radius);
+    private Rect getRect(Point n) {
+//        return new Rect(n.y - radius, n.x - radius, n.y + radius, n.x + radius);
+        return new Rect(n.x - radius, n.y - radius, n.x + radius, n.y + radius);
+
     }
 
     /**
@@ -56,12 +61,13 @@ public class Ball {
 
 
     public void hitSide() {
-        slopeY = -slopeY;
+//        slopeY = -slopeY;
+        slopeX = -slopeX;
     }
 
-
     public void hitPaddle() {
-        slopeX = -slopeX;
+//        slopeX = -slopeX;
+        slopeY = -slopeY;
     }
 
     public void setVelocity(int velocity) {
@@ -75,4 +81,11 @@ public class Ball {
     public Point getCenter() {
         return center;
     }
+
+    public int getVelocity() {
+        return velocity;
+    }
+
+    public int top(){ return center.y - radius;}
+
 }

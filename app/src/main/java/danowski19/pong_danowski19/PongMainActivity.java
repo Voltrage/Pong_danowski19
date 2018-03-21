@@ -58,7 +58,9 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		reset.setOnClickListener(this);
 		addBall.setOnClickListener(this);
 
-		speedSB.setProgress(30);
+		speedSB.setProgress(Pong.getSpeed());
+		widthSB.setProgress(Pong.getPaddleWidth());
+
 
 	}
 
@@ -69,6 +71,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 				Pong.balls.clear();
 			case R.id.addBallBTN:
 				Pong.addBall();
+				speedSB.setProgress(Pong.averageBallSpeed());
 				break;
 
 			default:
@@ -77,7 +80,12 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		Pong.setSpeed(progress);
+		if(seekBar.getId()==R.id.ballSpeed) {
+			Pong.setSpeed(progress);
+		}
+		else if(seekBar.getId()==R.id.paddleWidth){
+			Pong.setPaddleWidth(progress+50);
+		}
 	}
 
 	@Override
