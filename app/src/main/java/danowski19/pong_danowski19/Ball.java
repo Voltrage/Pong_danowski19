@@ -7,6 +7,11 @@ import java.util.Random;
 
 /**
  * Created by Luke on 3/19/2018.
+ *
+ * contains all information relevant to each Pong Ball in play, no rules here, just physics
+ *
+ * @author Luke Danowski
+ * @version March 2018
  */
 
 public class Ball {
@@ -16,13 +21,14 @@ public class Ball {
     private final int radius = 50;
     private float slopeX;
     private float slopeY;
-    private int velocity;
+    private float velocity;
+    private Random gen;
 
     public Ball(int wall) {
-        Random gen = new Random();
+        gen = new Random();
 
         //random direction
-        slopeY = gen.nextFloat()/2+0.25f;
+        slopeY = gen.nextFloat()/2+0.5f;
         slopeX = (float) Math.sqrt(1.0 - slopeY * slopeY);
 
         //random velocity
@@ -61,16 +67,14 @@ public class Ball {
 
 
     public void hitSide() {
-//        slopeY = -slopeY;
         slopeX = -slopeX;
     }
 
     public void hitPaddle() {
-//        slopeX = -slopeX;
         slopeY = -slopeY;
     }
 
-    public void setVelocity(int velocity) {
+    public void setVelocity(float velocity) {
         this.velocity = velocity;
     }
 
@@ -82,7 +86,7 @@ public class Ball {
         return center;
     }
 
-    public int getVelocity() {
+    public float getVelocity() {
         return velocity;
     }
 

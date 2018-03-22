@@ -12,10 +12,22 @@ import android.widget.TextView;
  * 
  * This is the activity for the Pong game. It attaches a PongAnimator to
  * an AnimationSurface.
+ *
+ *
+ *
  * 
  * @author Andrew Nuxoll
  * @author Steven R. Vegdahl
  * @version July 2013
+ *
+ *
+ * @author Luke Danowski
+ * @version March 2018
+ *
+ * added multiple ball support
+ * animated the paddle
+ * can change size of paddle
+ * can change speed of balls
  * 
  */
 public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChangeListener, View.OnClickListener{
@@ -58,7 +70,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		reset.setOnClickListener(this);
 		addBall.setOnClickListener(this);
 
-		speedSB.setProgress(Pong.getSpeed());
+		speedSB.setProgress((int) Pong.getSpeed()*1000);
 		widthSB.setProgress(Pong.getPaddleWidth());
 
 
@@ -73,7 +85,6 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 				Pong.addBall();
 				speedSB.setProgress(Pong.averageBallSpeed());
 				break;
-
 			default:
 		}
 	}
@@ -81,7 +92,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if(seekBar.getId()==R.id.ballSpeed) {
-			Pong.setSpeed(progress);
+			Pong.setSpeed(progress/1000f);
 		}
 		else if(seekBar.getId()==R.id.paddleWidth){
 			Pong.setPaddleWidth(progress);

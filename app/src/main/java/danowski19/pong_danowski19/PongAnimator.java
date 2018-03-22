@@ -17,38 +17,38 @@ import java.util.ListIterator;
  * @author Steve Vegdahl
  * @author Andrew Nuxoll
  * @version February 2016
+ *
+ * @author Luke Danowski
+ * @version March 2018
  */
 public class PongAnimator implements Animator{
 
 	// instance variables
 	private final int wallWidth = 50; // counts the number of logical clock ticks
-	ArrayList<Ball> balls = new ArrayList<Ball>();
+	ArrayList<Ball> balls = new ArrayList<>();
 
-	int player1score;
-	int player2score;
+	//used later in part B
+	private int player1score;
+	private int player2score;
 
-	private int speed = 20;
-	private Rect playVolume;
+	private float speed = 20;
 	private Paint wallPaint = new Paint(); //walls
-	private Rect leftWallRect;
-	private Rect rightWallRect;
-	private Rect topWallRect;
-	private Rect bottomWallRect;
 	private int paddleMid;
 	private int paddleWidth;
+
 	private Paint ballPaint = new Paint(); //ball
 	private Paint paddlePaint = new Paint(); //paddle
+	private Paint blackPaint = new Paint();
 	private Rect nextSpot;
 
-//backgroundPaint.setARGB(255, 180, 200, 255);
 
-	public PongAnimator() {
+	public PongAnimator( ) {
+
 		wallPaint.setColor(Color.GRAY);
-//				.setARGB(255, 200, 200, 200);
 		ballPaint.setColor(Color.RED);
-//				.setARGB(255, 255, 0, 0);
 		paddlePaint.setColor(Color.DKGRAY);
-//				.setARGB(255, 255, 255, 255);
+		blackPaint.setColor(Color.BLACK);
+
 		balls.add(new Ball(wallWidth));
 		paddleMid = -1;//changed when touched
 		paddleWidth=500;
@@ -64,7 +64,7 @@ public class PongAnimator implements Animator{
 		paddleMid = touchX;
 	}
 
-	public void setSpeed(int speed) {
+	public void setSpeed(float speed) {
 		this.speed = speed;
 		for(Ball n : balls) {
 			n.setVelocity(speed);
@@ -72,7 +72,7 @@ public class PongAnimator implements Animator{
 	}
 
 
-	public int getSpeed(){ return speed;}
+	public float getSpeed(){ return speed;}
 
 	/**
 	 * Interval between animation frames: .03 seconds (i.e., about 33 times
@@ -81,7 +81,7 @@ public class PongAnimator implements Animator{
 	 * @return the time interval between frames, in milliseconds.
 	 */
 	public int interval() {
-		return 20;
+		return 10;
 	}
 
 	/**
@@ -101,6 +101,12 @@ public class PongAnimator implements Animator{
 	 * @param g the graphics object on which to draw
 	 */
 	public void tick(Canvas g) {
+
+		Rect playVolume;
+		Rect leftWallRect;
+		Rect rightWallRect;
+		Rect topWallRect;
+		Rect bottomWallRect;
 
 		//define spaces
 		playVolume = new Rect(wallWidth, wallWidth, g.getWidth()-wallWidth, g.getHeight()-wallWidth);
@@ -136,9 +142,9 @@ public class PongAnimator implements Animator{
 
 
 		/**
-		 * ran into exceptions and weird bugs wehn running
+		 * Problem: Ran into exceptions and weird bugs wehn running
 		 *
-		 * asked Nuxol
+		 * Help From: asked Nuxoll
 		 *
 		 * suggested create an array of indexes and run after the fact
 		 *
@@ -173,13 +179,16 @@ public class PongAnimator implements Animator{
             //if outside of surface, record index to get rid of it
             if (n.top() > bottomWallRect.bottom) {
                 toRemove.add(count);
-            }
-            n.moveBall();
-            g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius(), ballPaint);
-            count++;
-        }
+				player1score++;
+			}
+			n.moveBall();
+			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius(), blackPaint);
+			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius()-5, ballPaint);
 
-        //remove out of bounds
+			count++;
+		}
+
+		//remove out of bounds
 		for(Integer n : toRemove) {
 			balls.remove(n.intValue());
 		}
@@ -226,30 +235,36 @@ public class PongAnimator implements Animator{
 	/**
 	 * when new balls are generated, they come in with random speed
 	 * so set the balls and seekBar to that average
-	 * @return
 	 */
 	public int averageBallSpeed(){
-		int sum=0;
+		float sum=0;
 		for(Ball n: balls){
 			sum+=n.getVelocity();
 		}
-		return sum/balls.size();
+		return (int) sum/balls.size()*1000;
 	}
 
+	/**
+	 * helper method for adding a Ball
+	 */
 	public void addBall() {
 		balls.add(new Ball(wallWidth));
+		averageBallSpeed();
 	}
 
+	/**
+	 * getter
+	 * @return	current PaddleWidth
+	 */
 	public int getPaddleWidth() {
 		return paddleWidth;
 	}
 
-//	public int getPlayer1score() {
-//
-//		return player1score;
-//	}
+	public int getPlayer1score() {
+		return player1score;
+	}
 
-//	public int getPlayer2score() {
-//		return player2score;
-//	}
+	public int getPlayer2score() {
+		return player2score;
+	}
 }//class TextAnimator
