@@ -1,7 +1,7 @@
 package danowski19.pong_danowski19;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -73,7 +73,6 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		speedSB.setProgress((int) Pong.getSpeed()*1000);
 		widthSB.setProgress(Pong.getPaddleWidth());
 
-
 	}
 
 	@Override
@@ -83,7 +82,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 				Pong.balls.clear();
 			case R.id.addBallBTN:
 				Pong.addBall();
-				speedSB.setProgress(Pong.averageBallSpeed());
+				speedSB.setProgress((int)Pong.getAverageBallSpeed()*1000);
 				break;
 			default:
 		}

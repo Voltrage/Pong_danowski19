@@ -1,13 +1,12 @@
 package danowski19.pong_danowski19;
 
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.view.MotionEvent;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ListIterator;
 
 
 /**
@@ -32,16 +31,20 @@ public class PongAnimator implements Animator{
 	private int player2score;
 
 	private float speed = 20;
-	private Paint wallPaint = new Paint(); //walls
 	private int paddleMid;
 	private int paddleWidth;
 
+	private Rect playVolume;
+
+	private Paint wallPaint = new Paint(); //walls
 	private Paint ballPaint = new Paint(); //ball
 	private Paint paddlePaint = new Paint(); //paddle
 	private Paint blackPaint = new Paint();
-	private Rect nextSpot;
 
 
+	/**
+	 * constructor that initializes colors, paddle, and scores
+	 */
 	public PongAnimator( ) {
 
 		wallPaint.setColor(Color.GRAY);
@@ -49,21 +52,35 @@ public class PongAnimator implements Animator{
 		paddlePaint.setColor(Color.DKGRAY);
 		blackPaint.setColor(Color.BLACK);
 
-		balls.add(new Ball(wallWidth));
 		paddleMid = -1;//changed when touched
 		paddleWidth=500;
 		player1score=0;
 		player2score=0;
+
 	}
 
+	/**
+	 *  Adjusts paddle width with minimum of 50dp
+	 *  to maximum of 1050dp
+	 * @param w from width SeekBar
+	 */
 	public void setPaddleWidth(int w){
 		paddleWidth = w+50;
 	}
 
+	/**
+	 * Adjusts the middle of the paddle
+	 * Called from a touch event
+	 * @param touchX from user
+	 */
 	public void setPaddleLoc(int touchX){
 		paddleMid = touchX;
 	}
 
+	/**
+	 * Sets each ball to the same speed in the range 0.000-100.000
+	 * @param speed
+	 */
 	public void setSpeed(float speed) {
 		this.speed = speed;
 		for(Ball n : balls) {
@@ -71,7 +88,10 @@ public class PongAnimator implements Animator{
 		}
 	}
 
-
+	/**
+	 * getter
+	 * @return Animator speed value
+	 */
 	public float getSpeed(){ return speed;}
 
 	/**
@@ -94,15 +114,18 @@ public class PongAnimator implements Animator{
 		return Color.rgb(180, 200, 255);
 	}
 
-
 	/**
 	 * Action to perform on clock tick
+	 *
+	 * defines various Rect objects and compares them, adjusting each Ball objects's slope
+	 * values with respect to these walls before calling the moveBall() method on them.
+	 *
+	 * draws walls, paddle, and ball
 	 *
 	 * @param g the graphics object on which to draw
 	 */
 	public void tick(Canvas g) {
-
-		Rect playVolume;
+		Rect nextSpot;
 		Rect leftWallRect;
 		Rect rightWallRect;
 		Rect topWallRect;
@@ -128,25 +151,18 @@ public class PongAnimator implements Animator{
 			bottomWallRect.offsetTo(paddleMid - paddleWidth / 2, bottomWallRect.top);
 		}
 
-
-
 		//draw it
 		g.drawRect(leftWallRect,wallPaint);
 		g.drawRect(rightWallRect,wallPaint);
 		g.drawRect(topWallRect,wallPaint);
-		g.drawRect(bottomWallRect,wallPaint);
-//		g.drawRect(playVolume, paddlePaint);
-//		g.drawRect(paddle1, paddlePaint);
-
-		//		ArrayList<Ball> copy = balls;
-
+		g.drawRect(bottomWallRect,paddlePaint);
 
 		/**
 		 * Problem: Ran into exceptions and weird bugs wehn running
 		 *
 		 * Help From: asked Nuxoll
 		 *
-		 * suggested create an array of indexes and run after the fact
+		 * Solution: suggested create an array of indexes and run the "remove" after the loop
 		 *
 		 * supported by https://codereview.stackexchange.com/questions/64011/removing-elements-on-a-list-while-iterating-through-it
 		 */
@@ -181,14 +197,15 @@ public class PongAnimator implements Animator{
                 toRemove.add(count);
 				player1score++;
 			}
+			//now that physics is set for this ball, set next position, draw and move on to next
 			n.moveBall();
 			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius(), blackPaint);
-			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius()-5, ballPaint);
+			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius()-6, ballPaint);
 
 			count++;
 		}
 
-		//remove out of bounds
+		//remove out of bounds balls
 		for(Integer n : toRemove) {
 			balls.remove(n.intValue());
 		}
@@ -198,12 +215,9 @@ public class PongAnimator implements Animator{
 			addBall();
 		}
 
-//		// Draw the ball in the correct position.
-//		Paint redPaint = new Paint();
-//		redPaint.setColor(Color.RED);
-//		g.drawCircle(num, num, 60, redPaint);
-//		redPaint.setColor(0xff0000ff);
-	}
+		setSpeed(getAverageBallSpeed());
+
+	}//tick
 
 
 	/**
@@ -225,7 +239,7 @@ public class PongAnimator implements Animator{
 	}
 
 	/**
-	 * reverse the ball's direction when the screen is tapped
+	 * adjust paddle location when screen is touched
 	 */
 	public void onTouch(MotionEvent event)
 	{
@@ -234,22 +248,22 @@ public class PongAnimator implements Animator{
 
 	/**
 	 * when new balls are generated, they come in with random speed
-	 * so set the balls and seekBar to that average
+	 * so set all the balls and seekBar to their average
 	 */
-	public int averageBallSpeed(){
+	public float getAverageBallSpeed(){
 		float sum=0;
 		for(Ball n: balls){
 			sum+=n.getVelocity();
 		}
-		return (int) sum/balls.size()*1000;
+		sum = (sum/balls.size());
+		return sum;
 	}
 
 	/**
 	 * helper method for adding a Ball
 	 */
 	public void addBall() {
-		balls.add(new Ball(wallWidth));
-		averageBallSpeed();
+		balls.add(new Ball(playVolume));
 	}
 
 	/**
@@ -260,10 +274,18 @@ public class PongAnimator implements Animator{
 		return paddleWidth;
 	}
 
+	/**
+	 * unused getter, will be used in Part B
+	 * @return
+	 */
 	public int getPlayer1score() {
 		return player1score;
 	}
 
+	/**
+	 * unused getter, will be used in Part B
+	 * @return
+	 */
 	public int getPlayer2score() {
 		return player2score;
 	}
