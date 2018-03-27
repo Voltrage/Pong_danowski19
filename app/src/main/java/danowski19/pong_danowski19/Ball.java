@@ -1,6 +1,7 @@
 package danowski19.pong_danowski19;
 
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 
 import java.util.Random;
@@ -32,15 +33,15 @@ public class Ball {
         gen = new Random();
 
         //random direction
-        slopeY = -(gen.nextFloat()/2+0.5f);
+        slopeY = gen.nextFloat()/2f+0.5f;
         slopeX = (float) Math.sqrt(1.0 - slopeY * slopeY);
 
         //random velocity
-        velocity = gen.nextInt(40)+10;
+        velocity = gen.nextInt(30)+10;
 
         //random starting position from within middle 4th, always goes up first
         int cx = gen.nextInt(validArea.width()-2*radius) + validArea.left + radius;
-        int cy = gen.nextInt(validArea.height()/4) + validArea.height()/2;
+        int cy = gen.nextInt(validArea.height()/2) + validArea.top;
         center = new Point(cx, cy);
 //        rect = new Rect(wall+1,wall+1,wall+2*radius,wall+2*radius);
     }
@@ -72,20 +73,54 @@ public class Ball {
     /**
      * perfect rebound in X axis
      */
-    public void hitSide() {
-        slopeX = -slopeX;
+    public void hitVerticalWall() {
+        slopeX = -0.99f*slopeX;
+        int x=1;
+        if(slopeY<0)
+            x=-1;
+        slopeY = x*(float) Math.sqrt(1.0 - slopeY * slopeY);
     }
 
     /**
      * perfect rebound in Y axis
      */
-    public void hitPaddle() {
-        slopeY = -slopeY;
+    public void hitHorizontalWall() {
+        slopeY = -0.99f*slopeY;
+        int x=1;
+        if(slopeX<0)
+            x=-1;
+        slopeX = x*(float) Math.sqrt(1.0 - slopeX * slopeX);
+
+    }
+
+    public void hitPaddle(PointF paddleMid, int paddleWidth, float velocity){
+        if(velocity>100){
+            velocity=100;
+        }
+//        if(center.x>=(paddleMid.x+paddleWidth)/2){
+//            slopeX=0.75f;
+//        }
+//        else if(center.x<=(paddleMid.x-paddleWidth)/2){
+//            slopeX=-0.75f;
+//        }
+//        else {
+//        hitHorizontalWall();
+        float bounceAngle = 0.85f * ((paddleMid.x+(paddleWidth/2f)-center.x))/(paddleWidth/2f);
+        slopeX = -(this.velocity+velocity)*(float) Math.sin(bounceAngle);
+        slopeY = (this.velocity+velocity)*(float) Math.cos(bounceAngle);
+//        }
+
+//        var relativeIntersectY = (paddle1Y+(PADDLEHEIGHT/2)) - intersectY;
+//        var normalizedRelativeIntersectionY = (relativeIntersectY/(PADDLEHEIGHT/2));
+//        var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+//        ballVx = velocity*Math.cos(bounceAngle);
+//        ballVy = velocity*-Math.sin(bounceAngle);
+
     }
 
     /**
      * changes this balls' velocity
-     * @param velocity to set to
+     * @param velocity to set to between 0 and 100
      */
     public void setVelocity(float velocity) {
         this.velocity = velocity;
@@ -115,10 +150,17 @@ public class Ball {
         return velocity;
     }
 
+
     /**
      * helper method for top of ball
      * @return y coordinate of top
      */
     public int top(){ return center.y - radius;}
+
+    /**
+     * helper method for top of ball
+     * @return y coordinate of top
+     */
+    public int bottom(){ return center.y + radius;}
 
 }

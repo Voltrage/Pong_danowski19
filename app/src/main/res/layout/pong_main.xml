@@ -3,6 +3,52 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
+    <RadioGroup
+        android:id="@+id/selects"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:checkedButton="@+id/One"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/smart"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="AI"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/Two"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Double" />
+
+        <RadioButton
+            android:id="@+id/One"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Single" />
+
+        <CheckBox
+            android:id="@+id/undock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Undock" />
+
+        <Button
+            android:id="@+id/pause"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Pause"
+            android:textSize="24sp" />
+
+    </RadioGroup>
+
     <LinearLayout
         android:id="@+id/controlBar"
         android:layout_width="match_parent"
@@ -66,51 +112,6 @@
             android:layout_height="wrap_content"
             android:text="Add Ball"
             android:textSize="30sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/controlFB"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/PlayerOneTextView"
-            android:layout_width="130dp"
-            android:layout_height="36dp"
-            android:gravity="center"
-            android:text="Player 1 : "
-            android:textSize="30sp" />
-
-        <TextView
-            android:id="@+id/playerOneScore"
-            android:layout_width="100dp"
-            android:layout_height="36dp"
-            android:gravity="center"
-            android:text="999"
-            android:textSize="30sp" />
-
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/PlayerTwoTextView"
-            android:layout_width="130dp"
-            android:layout_height="36dp"
-            android:gravity="center"
-            android:text="Player 2 : "
-            android:textSize="30sp" />
-
-        <TextView
-            android:id="@+id/playerTwoScore"
-            android:layout_width="100dp"
-            android:layout_height="36dp"
-            android:gravity="center"
-            android:text="999"
-            android:textSize="30sp" />
-
     </LinearLayout>
 
     <danowski19.pong_danowski19.AnimationSurface

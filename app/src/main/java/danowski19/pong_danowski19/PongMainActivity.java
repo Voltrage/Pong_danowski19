@@ -2,20 +2,24 @@ package danowski19.pong_danowski19;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 /**
  * PongMainActivity
- * 
+ *
  * This is the activity for the Pong game. It attaches a PongAnimator to
  * an AnimationSurface.
  *
  *
  *
- * 
+ *
  * @author Andrew Nuxoll
  * @author Steven R. Vegdahl
  * @version July 2013
@@ -28,9 +32,9 @@ import android.widget.TextView;
  * animated the paddle
  * can change size of paddle
  * can change speed of balls
- * 
+ *
  */
-public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChangeListener, View.OnClickListener{
+public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
 	TextView score1TV;
 	TextView score2TV;
@@ -38,7 +42,11 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 	SeekBar widthSB;
 	Button reset;
 	Button addBall;
+	Button pause;
 	PongAnimator Pong;
+	RadioGroup selects;
+	CheckBox undock;
+
 
 
 	/**
@@ -63,12 +71,18 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		widthSB = (SeekBar) this.findViewById(R.id.paddleWidth);
 		reset = (Button) this.findViewById(R.id.resetBTN);
 		addBall = (Button) this.findViewById(R.id.addBallBTN);
+		selects = (RadioGroup) this.findViewById(R.id.selects);
+		undock = (CheckBox) this.findViewById(R.id.undock);
+		pause = (Button) this.findViewById(R.id.pause);
 
 		// link to listener
 		speedSB.setOnSeekBarChangeListener(this);
 		widthSB.setOnSeekBarChangeListener(this);
 		reset.setOnClickListener(this);
 		addBall.setOnClickListener(this);
+		selects.setOnCheckedChangeListener(this);
+		undock.setOnClickListener(this);
+		pause.setOnClickListener(this);
 
 		speedSB.setProgress((int) Pong.getSpeed()*1000);
 		widthSB.setProgress(Pong.getPaddleWidth());
@@ -80,9 +94,18 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		switch(v.getId()) {
 			case R.id.resetBTN:
 				Pong.balls.clear();
+				Pong.resetScore();
 			case R.id.addBallBTN:
 				Pong.addBall();
 				speedSB.setProgress((int)Pong.getAverageBallSpeed()*1000);
+				break;
+			case R.id.undock:
+				if(v instanceof CheckBox) {
+					Pong.setIs3D(((CheckBox) v).isChecked());
+				}
+				break;
+			case R.id.pause:
+				Pong.setIsReady(false);
 				break;
 			default:
 		}
@@ -106,5 +129,25 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {
 
+	}
+
+	@Override
+	public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+//		if(group.find;
+//		//for drawing
+//		leftWallRect = new Rect(0, 0, wallWidth, height);
+//		rightWallRect = new Rect(width - wallWidth, 0, width, height);
+//
+
+		// This will get the radiobutton that has changed in its check state
+		RadioButton checkedRadioButton = (RadioButton)group.findViewById(checkedId);
+		switch (checkedId){
+			case R.id.One:
+				Pong.setIs1Player(true);
+				break;
+			case R.id.Two:
+				Pong.setIs1Player(false);
+				break;
+		}
 	}
 }
