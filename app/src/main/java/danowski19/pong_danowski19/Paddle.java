@@ -6,13 +6,15 @@ import android.graphics.Point;
 import android.graphics.Rect;
 
 /**
+ *
+ * Used to define extra functionality of the Paddle, is issentiallay a fancy Rect
+ *
  * Created by Luke on 3/29/2018.
  */
 
 public class Paddle {
-
+//varaibles
     public Rect box;
-//    public Point paddleMid;
     public int paddleWidth;
     private int wallWidth;
     private Canvas ref;
@@ -25,29 +27,18 @@ public class Paddle {
         this.is2D = is2D;
         this.ref = g;
         this.paddleWidth=paddleWidth;
-//        this.paddleMid=mid;
         this.wallWidth=wallWidth;
 
         box = new Rect(0, 0, paddleWidth, wallWidth);
 
         setPaddleMid(mid);
-//
-//        int right = (mid.x + paddleWidth + mid.x)/2;
-//        int left = right - paddleWidth;
-//
-//        if(isTop) {
-//            box = new Rect(left, 0, right, wallWidth);
-//        }
-//        else {
-//            box = new Rect( left, g.getHeight() - wallWidth, right, g.getHeight());
-//        }
 
     }
 
-//    private void updateBox(){
-//        box.offsetTo(paddleMid.x-paddleWidth, paddleMid.y);
-//    }
-
+    /**
+     * change all parameters associated with paddleWidth
+     * @param newWidth
+     */
     public void setPaddleWidth(int newWidth) {
 
         int difference = paddleWidth - newWidth;
@@ -106,7 +97,7 @@ public class Paddle {
     }
 
     /**
-     * draw method for paddles
+     * draw method for paddles, called in tick method
      * @param g
      * @param paddleCol
      */

@@ -27,7 +27,6 @@ public class Ball {
     private float slopeY;
     private float velocity;
     private Random gen;
-
     private Paint black;
 
 
@@ -142,7 +141,11 @@ public class Ball {
      */
     public int bottom(){ return center.y + radius;}
 
-
+    /**
+     * draw method for tick method
+     * @param g
+     * @param ballColor
+     */
     public void draw(Canvas g, Paint ballColor){
         g.drawCircle(center.x, center.y, radius, black);
         g.drawCircle(center.x, center.y, 0.85f*radius, ballColor);

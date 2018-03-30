@@ -13,8 +13,9 @@ import java.util.ArrayList;
 
 
 /**
- * class that animates a ball repeatedly moving diagonally on
- * simple background
+ * class that animates a ball, walls, and paddles repeatedly
+ *
+ * handles physics
  *
  * @author Steve Vegdahl
  * @author Andrew Nuxoll
@@ -27,16 +28,10 @@ public class PongAnimator implements Animator{
 
 	// instance variables
 	private int wallWidth=-1;
-	//	ArrayList<Ball> balls;
-	//	private SparseArray<PointF> mActivePointers;
-//    private VelocityTracker mVelocityTracker;
 	private SparseArray<Finger> mActivePointers;
 	private ArrayList<Integer> mActiveKeysBottom;
 	private ArrayList<Integer> mActiveKeysTop;
 	public ArrayList<Ball> balls;
-
-	private PointF player1Historical;
-	private PointF player2Historical;
 
 	private int player1score;
 	private int player2score;
@@ -44,8 +39,7 @@ public class PongAnimator implements Animator{
 	private boolean isPaused;
 	private boolean is1Player;
 	private boolean needsReinitialized;
-	//	private boolean is2Player;
-	private boolean isCompPlayer;
+
 
 	private float speed = 20;
 	private PointF topPaddleMid;
@@ -54,14 +48,10 @@ public class PongAnimator implements Animator{
 	private int height;
 	private int width;
 	private int paddleWidth;
-	private Rect playVolume;
-	private Rect topWallRect;
-	private Rect bottomWallRect;
 	private Paddle topWallPaddle;
 	private Paddle bottomWallPaddle;
 
 	private Rect ballCreationArea;
-	private Rect bottomWallVolume;
 	private Paint wallPaint = new Paint(); //walls
 	private Paint ballPaint = new Paint(); //ball
 	private Paint paddlePaint = new Paint(); //paddle
@@ -168,8 +158,6 @@ public class PongAnimator implements Animator{
 	 */
 	public void tick(Canvas g) {
 
-
-
 		//define if undefined
 		if(needsReinitialized) {
 			height = g.getHeight();
@@ -181,9 +169,6 @@ public class PongAnimator implements Animator{
 
 			ballCreationArea = new Rect(100, height/2 - height/6, width-100, height/2+height/6);
 
-			//define paddles as walls and adjust them based off current paddleWidth
-//			topWallRect = new Rect(0, 0, width, wallWidth);
-//			bottomWallRect = new Rect(0, height - wallWidth, width, height);
 
 			Point topStart = new Point(width/2, 0);
 			Point bottomStart = new Point(width/2, 3*height/4);
@@ -192,33 +177,16 @@ public class PongAnimator implements Animator{
 			topWallPaddle = new Paddle(g,(is1Player)? width : paddleWidth, wallWidth, topStart, true, is2D);
 			bottomWallPaddle = new Paddle(g,paddleWidth, wallWidth, bottomStart, false, is2D);
 
-//			//define active spaces
-//			if (is2D) {
-//				//each can go to 1/3rd of the surfaceview
-//				topWallVolume = new Rect(wallWidth, 0, width - wallWidth, (int) (height / 3f));
-//				bottomWallVolume = new Rect(wallWidth, height - wallWidth - (int) (height * 2f / 3f), width - wallWidth, height);
-//
-//			} else {
-//				//each limited to back of board
-//				topWallVolume = new Rect(wallWidth, 0, width - wallWidth, wallWidth);
-//				bottomWallVolume = new Rect(wallWidth, height - wallWidth, width - wallWidth, height);
-//			}
-//
-
 			resetScore();
-
 
 			isPaused=true;
 			needsReinitialized=false;
 		}
-//	}
 
 		Rect nextSpot;
 		Rect leftWallRect;
 		Rect rightWallRect;
 
-		float player1Angle; //1 is straight, with +-1 from how far ball lands from middle
-		float player2Angle;
 		Finger player1Active = getLowestFinger();
 		Finger player2Active = getHighestFinger();
 
@@ -231,76 +199,13 @@ public class PongAnimator implements Animator{
 			//might be null
 			if (is1Player && player1Active != null) {
 				//move to finger, is bounded, tracks change
-				bottomWallPaddle.setPaddleMid( pointF2I(player1Active.getPointF()));
+				bottomWallPaddle.setPaddleMid(pointF2I(player1Active.getPointF()));
+			} else if (player1Active != null && player2Active != null) {
+				bottomWallPaddle.setPaddleMid(pointF2I(player1Active.getPointF()));
+				topWallPaddle.setPaddleMid(pointF2I(player1Active.getPointF()));
 			}
-			else if( player1Active!=null && player2Active!=null){
-				bottomWallPaddle.setPaddleMid( pointF2I(player1Active.getPointF()));
-				topWallPaddle.setPaddleMid( pointF2I(player1Active.getPointF()));
-			}
 
-			int topCount = 1;
-
-			//average of touches in top and bottom
-//			for (int i = 0; i < size; i++) {
-//				Finger finger = mActivePointers.valueAt(i);
-//				if (finger != null) {
-//					//add them up
-//					if(finger.getStartY()<(height/2f)){
-//						topPaddleMid.offset(finger.x, finger.y);
-//						topCount++;
-//					}
-//					else {
-//						botPaddleMid.offset(finger.x, finger.y);
-//					}
-//				}
-//			}
-//			//average of touches
-//			topPaddleMid.x /= topCount;
-//			topPaddleMid.y /= topCount;
-//			botPaddleMid.x /= (size + 2 - topCount);
-//			botPaddleMid.y /= (size + 2 - topCount);
-
-
-//			if(topCount>size){
-//				is1Player=false;
-//			}
-//			else{
-//				is1Player=true;
-//			}
-
-			//update history
-//			if(!is1Player && player2Active!=null) {
-//				player2Historical.set(player2Active.getPointF());
-//			}
-//			player1Historical.set(player1Active.getPointF());
 		}
-//
-//		//height
-//		if (is2D) {
-//			if (topPaddleMid.y > topWallVolume.bottom) {
-//				topPaddleMid.y = topWallVolume.bottom;
-//			} else if (topPaddleMid.y < 0) {
-//				topPaddleMid.y = 0;
-//			}
-//			if (botPaddleMid.y < bottomWallVolume.top) {
-//				botPaddleMid.y = bottomWallVolume.top;
-//			} else if (botPaddleMid.y > height) {
-//				botPaddleMid.y = height;
-//			}
-//		} else {
-//			topPaddleMid.y = 0;
-//			botPaddleMid.y = height - wallWidth;
-//		}
-//
-//		//adjust paddles
-//		if (!is1Player) {
-//			topWallRect.offsetTo((int) (topPaddleMid.x - paddleWidth / 2f), (int) topPaddleMid.y);
-//		}
-//		bottomWallRect.offsetTo((int) (botPaddleMid.x - paddleWidth / 2f), (int) botPaddleMid.y);
-//
-
-		//define as in between paddles
-		playVolume = new Rect(wallWidth, topWallPaddle.box.bottom, width - wallWidth, bottomWallPaddle.box.top);
 
 		//for drawing
 		leftWallRect = new Rect(0, 0, wallWidth, height);
@@ -328,7 +233,6 @@ public class PongAnimator implements Animator{
 		for(Ball n : balls) {
 
 			nextSpot = n.getShadow();
-//			if (!playVolume.contains(nextSpot)) { //only check when need to
 				// collision with wall
 				if(Rect.intersects(nextSpot,leftWallRect) || Rect.intersects(nextSpot,rightWallRect)) {
 					//change X direction since just hit side wall
@@ -347,8 +251,6 @@ public class PongAnimator implements Animator{
 					//handle case of hitting edge
 					n.center.y = bottomWallPaddle.box.top - n.getRadius();
 				}
-//			}
-
 
 			//if outside of surface, record index to get rid of it
 			if (n.top() > height) {
@@ -382,8 +284,8 @@ public class PongAnimator implements Animator{
 
 		setSpeed(getAverageBallSpeed());
 
-		g.drawText("Bottom "+player1score + " " + bottomWallPaddle.dy,width/20,height/3,blackPaint);
-		g.drawText("Top "+player2score +" "+ topWallPaddle.dy,15*width/20,height*2/3,blackPaint);
+		g.drawText("Bottom "+player1score,width/20,height/3,blackPaint);
+		g.drawText("Top "+player2score,15*width/20,height*2/3,blackPaint);
 
 
 		if(!isPaused) {
@@ -394,6 +296,10 @@ public class PongAnimator implements Animator{
 
 	}//tick
 
+	/**
+	 *
+	 * @return finger with highest Y value
+	 */
 	private Finger getLowestFinger() {
 
 		int keyOfLowest=-1;
@@ -411,6 +317,10 @@ public class PongAnimator implements Animator{
 			return null;
 	}
 
+	/**
+	 * helper
+	 * @return Finger with lowest Y value
+	 */
 	private Finger getHighestFinger() {
 
 		int keyOfLowest=-1;
@@ -508,7 +418,6 @@ public class PongAnimator implements Animator{
 			case MotionEvent.ACTION_POINTER_UP:
 			case MotionEvent.ACTION_CANCEL:
 				// pointer no longer touching screen.
-
 				if(mActivePointers.get(pointerId).getStartY()<height/2f) {
 					mActiveKeysTop.remove(pointerId);
 				}
@@ -518,9 +427,6 @@ public class PongAnimator implements Animator{
 				mActivePointers.remove(pointerId);
 				break;
 		}
-
-//		updateFingers();
-
 
 
 	}

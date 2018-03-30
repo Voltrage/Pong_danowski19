@@ -135,6 +135,12 @@ public class PongMainActivity extends Activity implements AdapterView.OnItemSele
 		}
 	}
 
+	/**
+	 * seekbar actions
+	 * @param seekBar
+	 * @param progress
+	 * @param fromUser
+	 */
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if(seekBar.getId()==R.id.ballSpeed) {
@@ -155,6 +161,11 @@ public class PongMainActivity extends Activity implements AdapterView.OnItemSele
 
 	}
 
+	/**
+	 * switch between single and double player
+	 * @param group
+	 * @param checkedId
+	 */
 	@Override
 	public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
 //		if(group.find;
