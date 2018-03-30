@@ -3,4 +3,12 @@
 
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+
+
+    <string-array name="speed_list">
+        <item>"Slow"</item>
+        <item>"Medium"</item>
+        <item>"Fase"</item>
+    </string-array>
+
 </resources>

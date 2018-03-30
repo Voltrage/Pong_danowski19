@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
@@ -34,7 +37,7 @@ import android.widget.TextView;
  * can change speed of balls
  *
  */
-public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChangeListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener {
+public class PongMainActivity extends Activity implements AdapterView.OnItemSelectedListener, SeekBar.OnSeekBarChangeListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
 	TextView score1TV;
 	TextView score2TV;
@@ -46,6 +49,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 	PongAnimator Pong;
 	RadioGroup selects;
 	CheckBox undock;
+	Spinner AI_spinner;
 
 
 
@@ -74,6 +78,7 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		selects = (RadioGroup) this.findViewById(R.id.selects);
 		undock = (CheckBox) this.findViewById(R.id.undock);
 		pause = (Button) this.findViewById(R.id.pause);
+        AI_spinner = (Spinner) this.findViewById(R.id.AI_spinner);
 
 		// link to listener
 		speedSB.setOnSeekBarChangeListener(this);
@@ -84,11 +89,30 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 		undock.setOnClickListener(this);
 		pause.setOnClickListener(this);
 
+
+		/** External Citation  Date:     2/14/2018
+		 * Problem:  Wanted to list the strings in xml
+		 * Resource: I used the 376 lab files
+		 * Solution: I got the string using the getResources().getStringArray(R.array.hair_style_list)
+		 */
+		//Creating the ArrayAdapter instance having the speed list
+		ArrayAdapter<String> speedAdapter =
+				new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item,
+						getResources().getStringArray(R.array.speed_list));
+
+		//Setting the ArrayAdapter data on the Spinner
+		AI_spinner.setAdapter(speedAdapter);
+
+
 		speedSB.setProgress((int) Pong.getSpeed()*1000);
 		widthSB.setProgress(Pong.getPaddleWidth());
 
 	}
 
+	/**
+	 *
+	 * @param v
+	 */
 	@Override
 	public void onClick(View v) {
 		switch(v.getId()) {
@@ -101,11 +125,11 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 				break;
 			case R.id.undock:
 				if(v instanceof CheckBox) {
-					Pong.setIs3D(((CheckBox) v).isChecked());
+					Pong.setIs2D(((CheckBox) v).isChecked());
 				}
 				break;
 			case R.id.pause:
-				Pong.setIsReady(false);
+				Pong.setIsPaused(false);
 				break;
 			default:
 		}
@@ -149,5 +173,14 @@ public class PongMainActivity extends Activity implements SeekBar.OnSeekBarChang
 				Pong.setIs1Player(false);
 				break;
 		}
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+
 	}
 }

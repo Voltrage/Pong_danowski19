@@ -1,5 +1,8 @@
 package danowski19.pong_danowski19;
 
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -25,6 +28,9 @@ public class Ball {
     private float velocity;
     private Random gen;
 
+    private Paint black;
+
+
     /**
      * constructor
      * @param validArea to make sure it never randomly
@@ -44,8 +50,14 @@ public class Ball {
         int cy = gen.nextInt(validArea.height()/2) + validArea.top;
         center = new Point(cx, cy);
 //        rect = new Rect(wall+1,wall+1,wall+2*radius,wall+2*radius);
+        black = new Paint(Color.BLACK);
     }
 
+    /**
+     * only used in class
+     * @param n
+     * @return
+     */
     private Rect getRect(Point n) {
 //        return new Rect(n.y - radius, n.x - radius, n.y + radius, n.x + radius);
         return new Rect(n.x - radius, n.y - radius, n.x + radius, n.y + radius);
@@ -93,31 +105,6 @@ public class Ball {
 
     }
 
-    public void hitPaddle(PointF paddleMid, int paddleWidth, float velocity){
-        if(velocity>100){
-            velocity=100;
-        }
-//        if(center.x>=(paddleMid.x+paddleWidth)/2){
-//            slopeX=0.75f;
-//        }
-//        else if(center.x<=(paddleMid.x-paddleWidth)/2){
-//            slopeX=-0.75f;
-//        }
-//        else {
-//        hitHorizontalWall();
-        float bounceAngle = 0.85f * ((paddleMid.x+(paddleWidth/2f)-center.x))/(paddleWidth/2f);
-        slopeX = -(this.velocity+velocity)*(float) Math.sin(bounceAngle);
-        slopeY = (this.velocity+velocity)*(float) Math.cos(bounceAngle);
-//        }
-
-//        var relativeIntersectY = (paddle1Y+(PADDLEHEIGHT/2)) - intersectY;
-//        var normalizedRelativeIntersectionY = (relativeIntersectY/(PADDLEHEIGHT/2));
-//        var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-//        ballVx = velocity*Math.cos(bounceAngle);
-//        ballVy = velocity*-Math.sin(bounceAngle);
-
-    }
-
     /**
      * changes this balls' velocity
      * @param velocity to set to between 0 and 100
@@ -132,14 +119,6 @@ public class Ball {
      */
     public int getRadius() {
         return radius;
-    }
-
-    /**
-     * getter
-     * @return center of ball
-     */
-    public Point getCenter() {
-        return center;
     }
 
     /**
@@ -162,5 +141,12 @@ public class Ball {
      * @return y coordinate of top
      */
     public int bottom(){ return center.y + radius;}
+
+
+    public void draw(Canvas g, Paint ballColor){
+        g.drawCircle(center.x, center.y, radius, black);
+        g.drawCircle(center.x, center.y, 0.85f*radius, ballColor);
+
+    }
 
 }

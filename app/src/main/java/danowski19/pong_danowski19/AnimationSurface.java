@@ -202,8 +202,7 @@ public class AnimationSurface extends SurfaceView implements OnTouchListener {
 
 				// Pause to honor the animator's tick frequency specification
 				long currTime = System.currentTimeMillis();
-				long remainingWait = animator.interval()
-						- (currTime - lastTickEnded);
+				long remainingWait = animator.interval() - (currTime - lastTickEnded);
 				if (remainingWait > 0) {
 					sleep((int) remainingWait);
 				}

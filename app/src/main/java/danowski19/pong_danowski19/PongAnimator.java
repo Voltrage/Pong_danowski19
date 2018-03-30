@@ -3,6 +3,7 @@ package danowski19.pong_danowski19;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.util.SparseArray;
@@ -26,16 +27,25 @@ public class PongAnimator implements Animator{
 
 	// instance variables
 	private int wallWidth=-1;
-	ArrayList<Ball> balls;
-	private SparseArray<PointF> mActivePointers;
+	//	ArrayList<Ball> balls;
+	//	private SparseArray<PointF> mActivePointers;
 //    private VelocityTracker mVelocityTracker;
+	private SparseArray<Finger> mActivePointers;
+	private ArrayList<Integer> mActiveKeysBottom;
+	private ArrayList<Integer> mActiveKeysTop;
+	public ArrayList<Ball> balls;
 
-	//used later in part B
+	private PointF player1Historical;
+	private PointF player2Historical;
+
 	private int player1score;
 	private int player2score;
+	private boolean is2D;
+	private boolean isPaused;
 	private boolean is1Player;
-	private boolean is3D;
-	private boolean isReady;
+	private boolean needsReinitialized;
+	//	private boolean is2Player;
+	private boolean isCompPlayer;
 
 	private float speed = 20;
 	private PointF topPaddleMid;
@@ -47,8 +57,10 @@ public class PongAnimator implements Animator{
 	private Rect playVolume;
 	private Rect topWallRect;
 	private Rect bottomWallRect;
+	private Paddle topWallPaddle;
+	private Paddle bottomWallPaddle;
 
-	private Rect topWallVolume;
+	private Rect ballCreationArea;
 	private Rect bottomWallVolume;
 	private Paint wallPaint = new Paint(); //walls
 	private Paint ballPaint = new Paint(); //ball
@@ -64,6 +76,8 @@ public class PongAnimator implements Animator{
 		//initialize arrays
 		balls = new ArrayList<>();
 		mActivePointers = new SparseArray<>();
+		mActiveKeysBottom = new ArrayList<>();
+		mActiveKeysTop = new ArrayList<>();
 
 		//define colors
 		wallPaint.setColor(Color.GRAY);
@@ -71,16 +85,20 @@ public class PongAnimator implements Animator{
 		paddlePaint.setColor(Color.DKGRAY);
 		blackPaint.setColor(Color.BLACK);
 
+		wallWidth=-1;
+		width=-1;
+		height=-1;
+
 		topPaddleMid = new PointF();
 		botPaddleMid = new PointF();
 		paddleWidth=500;
 		player1score=0;
 		player2score=0;
 
-		isReady=false;
 		is1Player = true;
-		is3D = false;
-
+		isPaused = true;
+		is2D = false;
+		needsReinitialized=true;
 	}
 
 	/**
@@ -90,6 +108,14 @@ public class PongAnimator implements Animator{
 	 */
 	public void setPaddleWidth(int w){
 		paddleWidth = w+50;
+		if(is1Player & bottomWallPaddle!=null){
+			bottomWallPaddle.setPaddleWidth(paddleWidth);
+
+		}
+		else if( bottomWallPaddle!=null && topWallPaddle!=null){
+			bottomWallPaddle.setPaddleWidth(paddleWidth);
+			topWallPaddle.setPaddleWidth(paddleWidth);
+		}
 	}
 
 
@@ -143,83 +169,97 @@ public class PongAnimator implements Animator{
 	public void tick(Canvas g) {
 
 
+
 		//define if undefined
-		if (wallWidth < 0) {
+		if(needsReinitialized) {
 			height = g.getHeight();
 			width = g.getWidth();
 			wallWidth = width / 64;
-			botPaddleMid.set(width/2, height*3/4f);
-			topPaddleMid.set(width/2, height/4f);
-			blackPaint.setTextSize(2*wallWidth);
-		}
+			botPaddleMid.set(width / 2, height * 3 / 4f);
+			topPaddleMid.set(width / 2, (is1Player)? 0 : height/4f );
+			blackPaint.setTextSize(2 * wallWidth);
 
+			ballCreationArea = new Rect(100, height/2 - height/6, width-100, height/2+height/6);
+
+			//define paddles as walls and adjust them based off current paddleWidth
+//			topWallRect = new Rect(0, 0, width, wallWidth);
+//			bottomWallRect = new Rect(0, height - wallWidth, width, height);
+
+			Point topStart = new Point(width/2, 0);
+			Point bottomStart = new Point(width/2, 3*height/4);
+
+			//define paddles
+			topWallPaddle = new Paddle(g,(is1Player)? width : paddleWidth, wallWidth, topStart, true, is2D);
+			bottomWallPaddle = new Paddle(g,paddleWidth, wallWidth, bottomStart, false, is2D);
+
+//			//define active spaces
+//			if (is2D) {
+//				//each can go to 1/3rd of the surfaceview
+//				topWallVolume = new Rect(wallWidth, 0, width - wallWidth, (int) (height / 3f));
+//				bottomWallVolume = new Rect(wallWidth, height - wallWidth - (int) (height * 2f / 3f), width - wallWidth, height);
+//
+//			} else {
+//				//each limited to back of board
+//				topWallVolume = new Rect(wallWidth, 0, width - wallWidth, wallWidth);
+//				bottomWallVolume = new Rect(wallWidth, height - wallWidth, width - wallWidth, height);
+//			}
+//
+
+			resetScore();
+
+
+			isPaused=true;
+			needsReinitialized=false;
+		}
+//	}
 
 		Rect nextSpot;
 		Rect leftWallRect;
 		Rect rightWallRect;
 
-
-		//define paddles;
-		if (is1Player) {
-			//set to wall
-			topWallRect = new Rect(0, 0, width, wallWidth);
-		} else {
-			//set to paddle
-			topWallRect = new Rect((width - paddleWidth) / 2, 0, (width + paddleWidth) / 2, wallWidth);
-		}
-		//always a paddle
-		bottomWallRect = new Rect((width - paddleWidth) / 2, height - wallWidth, (width + paddleWidth) / 2, height);
-
-		//define active spaces
-		if (is3D) {
-			//each can go to 1/3rd of the surfaceview
-			topWallVolume = new Rect(wallWidth, 0, width - wallWidth, (int) (height / 3f));
-			bottomWallVolume = new Rect(wallWidth, height - wallWidth - (int) (height * 2f / 3f), width - wallWidth, height);
-		} else {
-			//each limited to back of board
-			topWallVolume = new Rect(wallWidth, 0, width - wallWidth, wallWidth);
-			bottomWallVolume = new Rect(wallWidth, height - wallWidth, width - wallWidth, height);
-		}
-
+		float player1Angle; //1 is straight, with +-1 from how far ball lands from middle
+		float player2Angle;
+		Finger player1Active = getLowestFinger();
+		Finger player2Active = getHighestFinger();
 
 		//number of touch points
 		int size = mActivePointers.size();
-		//keep track of motion
-		float topVel = topPaddleMid.y, bottomVel = botPaddleMid.y;
-
 
 		//if at least one touch, then need to adjust paddle
 		if (size > 0) {
 
-			//keep track of number in top
+			//might be null
+			if (is1Player && player1Active != null) {
+				//move to finger, is bounded, tracks change
+				bottomWallPaddle.setPaddleMid( pointF2I(player1Active.getPointF()));
+			}
+			else if( player1Active!=null && player2Active!=null){
+				bottomWallPaddle.setPaddleMid( pointF2I(player1Active.getPointF()));
+				topWallPaddle.setPaddleMid( pointF2I(player1Active.getPointF()));
+			}
+
 			int topCount = 1;
 
 			//average of touches in top and bottom
-			for (int i = 0; i < size; i++) {
-				PointF finger = mActivePointers.valueAt(i);
-				if (finger != null) {
-					//add them up
-					if(finger.y<(height/2f)){
-						topPaddleMid.offset(finger.x, finger.y);
-						topCount++;
-					}
-					else {
-						botPaddleMid.offset(finger.x, finger.y);
-					}
-				}
-			}
+//			for (int i = 0; i < size; i++) {
+//				Finger finger = mActivePointers.valueAt(i);
+//				if (finger != null) {
+//					//add them up
+//					if(finger.getStartY()<(height/2f)){
+//						topPaddleMid.offset(finger.x, finger.y);
+//						topCount++;
+//					}
+//					else {
+//						botPaddleMid.offset(finger.x, finger.y);
+//					}
+//				}
+//			}
+//			//average of touches
+//			topPaddleMid.x /= topCount;
+//			topPaddleMid.y /= topCount;
+//			botPaddleMid.x /= (size + 2 - topCount);
+//			botPaddleMid.y /= (size + 2 - topCount);
 
-			int rightLimit = width - wallWidth - paddleWidth / 2;
-			int leftLimit = wallWidth + paddleWidth / 2;
-
-			//average of touches
-			topPaddleMid.x /= topCount;
-			topPaddleMid.y /= topCount;
-			botPaddleMid.x /= (size + 2 - topCount);
-			botPaddleMid.y /= (size + 2 - topCount);
-
-			topVel = topPaddleMid.y-topVel;
-			bottomVel = bottomVel- botPaddleMid.y;
 
 //			if(topCount>size){
 //				is1Player=false;
@@ -228,49 +268,39 @@ public class PongAnimator implements Animator{
 //				is1Player=true;
 //			}
 
-			if(is1Player&&topCount>1){
-				botPaddleMid.x=(botPaddleMid.x+topPaddleMid.x)/2f;
-			}
-
-			//saturate edges
-			if (topPaddleMid.x > rightLimit) {
-				topPaddleMid.x = rightLimit;
-			} else if (topPaddleMid.x < leftLimit) {
-				topPaddleMid.x = leftLimit;
-			}
-			if (botPaddleMid.x > rightLimit) {
-				botPaddleMid.x = rightLimit;
-			} else if (botPaddleMid.x < leftLimit) {
-				botPaddleMid.x = leftLimit;
-			}
-
+			//update history
+//			if(!is1Player && player2Active!=null) {
+//				player2Historical.set(player2Active.getPointF());
+//			}
+//			player1Historical.set(player1Active.getPointF());
 		}
-		//height
-		if (is3D) {
-			if (topPaddleMid.y > topWallVolume.bottom) {
-				topPaddleMid.y = topWallVolume.bottom;
-			} else if (topPaddleMid.y < 0) {
-				topPaddleMid.y = 0;
-			}
-			if (botPaddleMid.y < bottomWallVolume.top) {
-				botPaddleMid.y = bottomWallVolume.top;
-			} else if (botPaddleMid.y > height) {
-				botPaddleMid.y = height;
-			}
-		} else {
-			topPaddleMid.y = 0;
-			botPaddleMid.y = height - wallWidth;
-		}
-
-		//adjust paddles
-		if (!is1Player) {
-			topWallRect.offsetTo((int) (topPaddleMid.x - paddleWidth / 2f), (int) topPaddleMid.y);
-		}
-		bottomWallRect.offsetTo((int) (botPaddleMid.x - paddleWidth / 2f), (int) botPaddleMid.y);
-
+//
+//		//height
+//		if (is2D) {
+//			if (topPaddleMid.y > topWallVolume.bottom) {
+//				topPaddleMid.y = topWallVolume.bottom;
+//			} else if (topPaddleMid.y < 0) {
+//				topPaddleMid.y = 0;
+//			}
+//			if (botPaddleMid.y < bottomWallVolume.top) {
+//				botPaddleMid.y = bottomWallVolume.top;
+//			} else if (botPaddleMid.y > height) {
+//				botPaddleMid.y = height;
+//			}
+//		} else {
+//			topPaddleMid.y = 0;
+//			botPaddleMid.y = height - wallWidth;
+//		}
+//
+//		//adjust paddles
+//		if (!is1Player) {
+//			topWallRect.offsetTo((int) (topPaddleMid.x - paddleWidth / 2f), (int) topPaddleMid.y);
+//		}
+//		bottomWallRect.offsetTo((int) (botPaddleMid.x - paddleWidth / 2f), (int) botPaddleMid.y);
+//
 
 		//define as in between paddles
-		playVolume = new Rect(wallWidth, topWallRect.bottom, width - wallWidth, bottomWallRect.top);
+		playVolume = new Rect(wallWidth, topWallPaddle.box.bottom, width - wallWidth, bottomWallPaddle.box.top);
 
 		//for drawing
 		leftWallRect = new Rect(0, 0, wallWidth, height);
@@ -279,12 +309,12 @@ public class PongAnimator implements Animator{
 		//draw it
 		g.drawRect(leftWallRect,wallPaint);
 		g.drawRect(rightWallRect,wallPaint);
-		g.drawRect(topWallRect,wallPaint);
-		g.drawRect(bottomWallRect,paddlePaint);
+		topWallPaddle.draw(g, (is1Player)? wallPaint: paddlePaint);
+		bottomWallPaddle.draw(g, paddlePaint);
 
 
 		/**
-		 * Problem: Ran into exceptions and weird bugs wehn running
+		 * Problem: Ran into exceptions and weird bugs when running
 		 *
 		 * Help From: asked Nuxoll
 		 *
@@ -297,38 +327,27 @@ public class PongAnimator implements Animator{
 		int count=0;
 		for(Ball n : balls) {
 
-
 			nextSpot = n.getShadow();
-			if (!playVolume.contains(nextSpot)) {
-//				if (nextSpot.left <= leftWallRect.right || nextSpot.right >= rightWallRect.left) {
+//			if (!playVolume.contains(nextSpot)) { //only check when need to
+				// collision with wall
 				if(Rect.intersects(nextSpot,leftWallRect) || Rect.intersects(nextSpot,rightWallRect)) {
-					//change Y direction since just hit side wall
+					//change X direction since just hit side wall
 					n.hitVerticalWall();
-
 				}
-				if (Rect.intersects(nextSpot, topWallRect)) {
-//					if(is3D){
-//						n.hitPaddle(topWallRect,topPaddleMid,paddleWidth,topVel);
-//					}
-//					else {
-						//change X direction since jut hit top or bottom
-						n.hitHorizontalWall();
-						//handle case of hitting edge
-						n.center.y = topWallRect.bottom + n.getRadius();
-//					}
-
-				} else if (Rect.intersects(nextSpot, bottomWallRect)) {
-					if(is3D){
-						n.hitPaddle(botPaddleMid,paddleWidth,bottomVel);
-					}
-					else {
-						//change X direction since jut hit paddle
-						n.hitHorizontalWall();
-					}
+				//collision with a Paddle
+				if (Rect.intersects(nextSpot, topWallPaddle.box)) {
+					//change X direction since jut hit top or bottom
+					n.hitHorizontalWall();
 					//handle case of hitting edge
-					n.center.y = bottomWallRect.top - n.getRadius();
+					n.center.y = topWallPaddle.box.bottom + n.getRadius();
 				}
-			}
+				else if (Rect.intersects(nextSpot, bottomWallPaddle.box)) {
+					//change X direction since jut hit paddle
+					n.hitHorizontalWall();
+					//handle case of hitting edge
+					n.center.y = bottomWallPaddle.box.top - n.getRadius();
+				}
+//			}
 
 
 			//if outside of surface, record index to get rid of it
@@ -341,12 +360,10 @@ public class PongAnimator implements Animator{
 				player1score++;
 			}
 			//now that physics is set for this ball, set next position, draw and move on to next
-			if(isReady) {
+			if(isPaused) {
 				n.moveBall();
 			}
-			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius(), blackPaint);
-			g.drawCircle(n.getCenter().x, n.getCenter().y, n.getRadius()-6, ballPaint);
-
+			n.draw(g, ballPaint);
 			count++;
 		}
 
@@ -358,22 +375,59 @@ public class PongAnimator implements Animator{
 		//make sure there is at least one
 		if(count==0){
 			if(size==0) {
-				isReady = false;
+				isPaused = false;
 			}
 			addBall();
 		}
 
 		setSpeed(getAverageBallSpeed());
 
-		g.drawText("Bottom "+player1score + " " + bottomVel,width/20,height/3,blackPaint);
-		g.drawText("Top "+player2score +" "+ topVel,15*width/20,height*2/3,blackPaint);
+		g.drawText("Bottom "+player1score + " " + bottomWallPaddle.dy,width/20,height/3,blackPaint);
+		g.drawText("Top "+player2score +" "+ topWallPaddle.dy,15*width/20,height*2/3,blackPaint);
 
 
-		if(!isReady) {
+		if(!isPaused) {
 			g.drawText("READY? TOUCH TO PLAY!", width/2-10*wallWidth, height/2,blackPaint);
 		}
 
+
+
 	}//tick
+
+	private Finger getLowestFinger() {
+
+		int keyOfLowest=-1;
+		float min = 0;
+		for (Integer k : mActiveKeysBottom){
+			Finger f = mActivePointers.get(k.intValue());
+			if(f.y > min){
+				min = f.y;
+				keyOfLowest = k.intValue();
+			}
+		}
+		if(keyOfLowest>=0)
+			return mActivePointers.get(keyOfLowest);
+		else
+			return null;
+	}
+
+	private Finger getHighestFinger() {
+
+		int keyOfLowest=-1;
+		float max = height;
+		for (Integer k : mActiveKeysTop){
+			Finger f = mActivePointers.get(k.intValue());
+			if(f.y < max){
+				max = f.y;
+				keyOfLowest = k.intValue();
+			}
+		}
+		if(keyOfLowest>=0)
+			return mActivePointers.get(keyOfLowest);
+		else
+			return null;
+	}
+
 
 
 	/**
@@ -400,17 +454,20 @@ public class PongAnimator implements Animator{
 	public void onTouch(MotionEvent event)
 	{
 
-
-		if(!isReady){
-			isReady=true;
+		//need to run tick method at least once
+		if(needsReinitialized){
+			return;
 		}
+
+		//on a touch, the game will resume
+		if(!isPaused){
+			isPaused =true;
+		}
+
 
 		/**
 		 * what to do with multiple fingers
 		 * http://www.vogella.com/tutorials/AndroidTouch/article.html
-		 *
-		 * how to track velocity
-		 * https://developer.android.com/training/gestures/movement.html
 		 */
 
 		// get pointer index from the event object
@@ -423,52 +480,65 @@ public class PongAnimator implements Animator{
 		int maskedAction = event.getActionMasked();
 
 		switch (maskedAction) {
-
 			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_POINTER_DOWN: {
+			case MotionEvent.ACTION_POINTER_DOWN:
 				// We have a new pointer. Lets add it to the list of pointers
-				PointF f = new PointF();
-				f.x = event.getX(pointerIndex);
-				f.y = event.getY(pointerIndex);
+				Finger f = new Finger(event.getX(pointerIndex), event.getY(pointerIndex));
 				mActivePointers.put(pointerId, f);
 
+				//sorts keys
+				if(f.getStartY()<height/2f) {
+					mActiveKeysTop.add(pointerId);
+				}
+				else {
+					mActiveKeysBottom.add(pointerId);
+				}
 
-//                if(mVelocityTracker == null) {
-//                    // Retrieve a new VelocityTracker object to watch the
-//                    // velocity of a motion.
-//                    mVelocityTracker = VelocityTracker.obtain();
-//                }
-//                else {
-//                    // Reset the velocity tracker back to its initial state.
-//                    mVelocityTracker.clear();
-//                }
-//                // Add a user's movement to the tracker.
-//                mVelocityTracker.addMovement(event);
-//				break;
-			}
-
-			case MotionEvent.ACTION_MOVE: { // a pointer was moved
+				break;
+			case MotionEvent.ACTION_MOVE:  // a pointer was moved
 				for (int size = event.getPointerCount(), i = 0; i < size; i++) {
-					PointF point = mActivePointers.get(event.getPointerId(i));
+					Finger point = mActivePointers.get(event.getPointerId(i));
 					if (point != null) {
 						point.x = event.getX(i);
 						point.y = event.getY(i);
 					}
 				}
 				break;
-			}
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_POINTER_UP:
-			case MotionEvent.ACTION_CANCEL: {
+			case MotionEvent.ACTION_CANCEL:
 				// pointer no longer touching screen.
+
+				if(mActivePointers.get(pointerId).getStartY()<height/2f) {
+					mActiveKeysTop.remove(pointerId);
+				}
+				else {
+					mActiveKeysBottom.remove(pointerId);
+				}
 				mActivePointers.remove(pointerId);
-//                // Return a VelocityTracker object back to be re-used by others.
-//                mVelocityTracker.recycle();
 				break;
-			}
 		}
-//
-//		setPaddleLoc(Math.round(event.getX()));
+
+//		updateFingers();
+
+
+
+	}
+
+	private void updateFingers(){
+
+		mActiveKeysTop.clear();
+		mActiveKeysBottom.clear();
+		for (int size = mActivePointers.size(), i = 0; i < size; i++) {
+			int key = mActivePointers.keyAt(i);
+
+			//sorts keys
+			if(mActivePointers.get(key).getStartY()<height/2f)
+				mActiveKeysTop.add(key);
+			else
+				mActiveKeysBottom.add(key);
+		}
+
 	}
 
 	/**
@@ -488,7 +558,9 @@ public class PongAnimator implements Animator{
 	 * helper method for adding a Ball
 	 */
 	public void addBall() {
-		balls.add(new Ball(playVolume));
+		if(ballCreationArea!=null) {
+			balls.add(new Ball(ballCreationArea));
+		}
 	}
 
 	/**
@@ -500,35 +572,47 @@ public class PongAnimator implements Animator{
 	}
 
 	/**
-	 * unused getter, will be used in Part B
-	 * @return
+	 * setter
+	 * @param yes_no
 	 */
-	public int getPlayer1score() {
-		return player1score;
+	public void setIs2D(boolean yes_no) {
+		this.is2D = yes_no;
+		needsReinitialized=true;
 	}
 
 	/**
-	 * unused getter, will be used in Part B
-	 * @return
+	 * setter
+	 * @param is1Player
 	 */
-	public int getPlayer2score() {
-		return player2score;
-	}
-
-	public void setIs3D(boolean whoami) {
-		this.is3D = whoami;
-	}
-
 	public void setIs1Player(boolean is1Player) {
 		this.is1Player = is1Player;
+		needsReinitialized=true;
 	}
 
-	public void setIsReady(boolean isReady) {
-		this.isReady = isReady;
+	/**
+	 * setter
+	 * @param isPaused
+	 */
+	public void setIsPaused(boolean isPaused) {
+		this.isPaused = isPaused;
 	}
 
+	/**
+	 * yep
+	 */
 	public void resetScore() {
 		player1score=0;
 		player2score=0;
 	}
+
+	/**
+	 * helper function that turns PointF into Point
+	 * @param p
+	 * @return
+	 */
+	public Point pointF2I(PointF p){
+		return new Point((int)p.x, (int)p.y);
+	}
+
+
 }//class TextAnimator

@@ -10,6 +10,12 @@
         android:checkedButton="@+id/One"
         android:orientation="horizontal">
 
+        <Spinner
+            android:id="@+id/AI_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
         <RadioButton
             android:id="@+id/smart"
             android:layout_width="wrap_content"
@@ -35,7 +41,7 @@
         <CheckBox
             android:id="@+id/undock"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Undock" />
 
@@ -71,6 +77,7 @@
                 android:id="@+id/SpeedTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:gravity="center"
                 android:text="Speed"
                 android:textSize="24sp" />
@@ -79,6 +86,7 @@
                 android:id="@+id/WidthTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:gravity="center"
                 android:text="Width"
                 android:textSize="24sp" />
